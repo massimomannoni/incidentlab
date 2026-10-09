@@ -1,0 +1,10 @@
+Generated using the built-in imagegen tool. Opaque background.
+
+Use case: stylized-concept
+Asset type: wide 16:9 editorial cover for a technical Medium article about IncidentLab, a security and reliability laboratory built with AI in one day.
+Primary request: a very nerdy, beautifully crafted retro-computing laboratory, combining an isometric electronics bench and phosphor CRT terminal aesthetic. A small API server, an oscilloscope-like signal analyzer, and three modular computation boards are connected by visible circuit traces. A single amber anomaly pulse travels through an otherwise calm green telemetry stream and lights the investigation modules. It should visually suggest event-triggered investigation, not an always-running AI.
+Style/medium: sophisticated pixel-art-meets-technical-cutaway editorial illustration, meticulous cables, PCB traces, vents, tiny LEDs, tactile dark metal, subtle CRT scan lines, crisp silhouettes, cinematic but legible at thumbnail size.
+Lighting/mood: charcoal midnight laboratory, green phosphor with one amber alert and restrained cyan highlights, curious hacker-maker energy, not sinister.
+Composition/framing: wide horizontal composition, one coherent focal scene, generous breathing room, keep important details away from crop edges.
+Text (verbatim): "INCIDENTLAB" as a small crisp terminal header, no other prose.
+Constraints: This is a conceptual illustration, not a screenshot or empirical graph. No humans, hooded hackers, robots, brains, padlock stock icons, company logos, watermarks, fake numerical metrics or random floating code. Opaque background.

@@ -1,0 +1,12 @@
+{
+  "name": "incidentlab-editorial-diagrams",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "render": "node render-light-diagrams.cjs"
+  },
+  "devDependencies": {
+    "sharp": "0.35.5"
+  }
+}

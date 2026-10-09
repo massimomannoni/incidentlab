@@ -1,0 +1,48 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncidentLab.Core", "backend/IncidentLab.Core/IncidentLab.Core.csproj", "{A4F05614-269D-41F6-8E20-857DC20FB851}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncidentLab.Api", "backend/IncidentLab.Api/IncidentLab.Api.csproj", "{E24348FA-8E10-46E3-97AC-D4DDB75EBD8C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncidentLab.Worker", "backend/IncidentLab.Worker/IncidentLab.Worker.csproj", "{42CD75A8-CCBB-446E-8F5B-BE9A25BE6FAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncidentLab.Tests", "backend/IncidentLab.Tests/IncidentLab.Tests.csproj", "{6D4F519F-52D6-475F-853D-3371702BA9B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Target", "target/Target.csproj", "{C0415118-1127-401F-B3C9-6E0D7AAC3A67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IncidentLab.Gateway", "backend/IncidentLab.Gateway/IncidentLab.Gateway.csproj", "{7F006E99-AE2D-45C6-AFD8-44388A343A21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7F006E99-AE2D-45C6-AFD8-44388A343A21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F006E99-AE2D-45C6-AFD8-44388A343A21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F006E99-AE2D-45C6-AFD8-44388A343A21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F006E99-AE2D-45C6-AFD8-44388A343A21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4F05614-269D-41F6-8E20-857DC20FB851}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4F05614-269D-41F6-8E20-857DC20FB851}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4F05614-269D-41F6-8E20-857DC20FB851}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4F05614-269D-41F6-8E20-857DC20FB851}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E24348FA-8E10-46E3-97AC-D4DDB75EBD8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E24348FA-8E10-46E3-97AC-D4DDB75EBD8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E24348FA-8E10-46E3-97AC-D4DDB75EBD8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E24348FA-8E10-46E3-97AC-D4DDB75EBD8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42CD75A8-CCBB-446E-8F5B-BE9A25BE6FAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42CD75A8-CCBB-446E-8F5B-BE9A25BE6FAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42CD75A8-CCBB-446E-8F5B-BE9A25BE6FAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42CD75A8-CCBB-446E-8F5B-BE9A25BE6FAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D4F519F-52D6-475F-853D-3371702BA9B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D4F519F-52D6-475F-853D-3371702BA9B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D4F519F-52D6-475F-853D-3371702BA9B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D4F519F-52D6-475F-853D-3371702BA9B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C0415118-1127-401F-B3C9-6E0D7AAC3A67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0415118-1127-401F-B3C9-6E0D7AAC3A67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0415118-1127-401F-B3C9-6E0D7AAC3A67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0415118-1127-401F-B3C9-6E0D7AAC3A67}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

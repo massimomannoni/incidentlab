@@ -1,0 +1,73 @@
+name: incidentlab-monitor
+services:
+  monitor:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${MONITOR_BIND_ADDRESS:-127.0.0.1}:8010:8010"
+    environment:
+      DATABASE_URL: postgresql://incidentlab:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/incidentlab
+      TELEMETRY_BACKEND: opensearch
+      OPENSEARCH_URL: http://opensearch:9200
+      TARGET_URL: ${TARGET_URL:?Set TARGET_URL to the private target endpoint}
+      LAB_INGEST_KEY: ${LAB_INGEST_KEY:?Set LAB_INGEST_KEY}
+      LAB_CONTROL_KEY: ${LAB_CONTROL_KEY:?Set LAB_CONTROL_KEY}
+      LAB_WORKER_KEY: ${LAB_WORKER_KEY:-}
+      LAB_BEDROCK_ENABLED: ${LAB_BEDROCK_ENABLED:-false}
+      LAB_BEDROCK_REGION: ${LAB_BEDROCK_REGION:-eu-south-1}
+      LAB_BEDROCK_MONTHLY_CAP_USD: ${LAB_BEDROCK_MONTHLY_CAP_USD:-5}
+      LAB_BEDROCK_DAILY_CAP_USD: ${LAB_BEDROCK_DAILY_CAP_USD:-0.50}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    mem_limit: 768m
+    cpus: 1.0
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  postgres:
+    image: postgres:17.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: incidentlab
+      POSTGRES_USER: incidentlab
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U incidentlab -d incidentlab"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    mem_limit: 512m
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+  opensearch:
+    image: opensearchproject/opensearch:3.3.0
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
+    # No host port: only the private container network can query this demo node.
+    volumes: ["opensearch-data:/usr/share/opensearch/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+    ulimits:
+      nofile: {soft: 65536, hard: 65536}
+    mem_limit: 3g
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  postgres-data:
+  opensearch-data:

@@ -1,0 +1,54 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "IncidentLab private POC: two EC2 hosts and a private deployment bucket. Run lab.sh aws install after infrastructure creation. No public application or AI deployment.",
+  "Parameters": {
+    "VpcId": {"Type": "AWS::EC2::VPC::Id", "Description": "Existing laboratory VPC"},
+    "SubnetId": {"Type": "AWS::EC2::Subnet::Id", "Description": "Subnet with outbound access for SSM and container images; no public ingress is added"},
+    "MonitorInstanceType": {"Type": "String", "Default": "t3.large", "AllowedValues": ["t3.large", "t3.xlarge"]},
+    "TargetInstanceType": {"Type": "String", "Default": "t3.small", "AllowedValues": ["t3.small", "t3.medium"]},
+    "LinuxAmi": {"Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>", "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"},
+    "ProjectTag": {"Type": "String", "Default": "incidentlab", "AllowedPattern": "[a-z][a-z0-9-]{2,30}"}
+  },
+  "Resources": {
+    "DeploymentBucket": {"Type": "AWS::S3::Bucket", "DeletionPolicy": "Retain", "UpdateReplacePolicy": "Retain", "Properties": {"PublicAccessBlockConfiguration": {"BlockPublicAcls": true, "BlockPublicPolicy": true, "IgnorePublicAcls": true, "RestrictPublicBuckets": true}, "OwnershipControls": {"Rules": [{"ObjectOwnership": "BucketOwnerEnforced"}]}, "BucketEncryption": {"ServerSideEncryptionConfiguration": [{"ServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}, "LifecycleConfiguration": {"Rules": [{"Id": "ExpireDeploymentBundles", "Status": "Enabled", "ExpirationInDays": 7}]}}},
+    "DeploymentBucketPolicy": {"Type": "AWS::S3::BucketPolicy", "Properties": {"Bucket": {"Ref": "DeploymentBucket"}, "PolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Deny", "Principal": "*", "Action": "s3:*", "Resource": [{"Fn::GetAtt": ["DeploymentBucket", "Arn"]}, {"Fn::Sub": "${DeploymentBucket.Arn}/*"}], "Condition": {"Bool": {"aws:SecureTransport": "false"}}}]}}},
+    "MonitorSecurityGroup": {"Type": "AWS::EC2::SecurityGroup", "Properties": {"GroupDescription": "Monitor: no public inbound access", "VpcId": {"Ref": "VpcId"}, "Tags": [{"Key": "Project", "Value": {"Ref": "ProjectTag"}}]}},
+    "TargetSecurityGroup": {"Type": "AWS::EC2::SecurityGroup", "Properties": {"GroupDescription": "Target: no public inbound access", "VpcId": {"Ref": "VpcId"}, "Tags": [{"Key": "Project", "Value": {"Ref": "ProjectTag"}}]}},
+    "TelemetryIngress": {"Type": "AWS::EC2::SecurityGroupIngress", "Properties": {"GroupId": {"Ref": "MonitorSecurityGroup"}, "IpProtocol": "tcp", "FromPort": 8010, "ToPort": 8010, "SourceSecurityGroupId": {"Ref": "TargetSecurityGroup"}, "Description": "Target sends telemetry to monitor"}},
+    "TargetIngress": {"Type": "AWS::EC2::SecurityGroupIngress", "Properties": {"GroupId": {"Ref": "TargetSecurityGroup"}, "IpProtocol": "tcp", "FromPort": 8080, "ToPort": 8080, "SourceSecurityGroupId": {"Ref": "MonitorSecurityGroup"}, "Description": "Monitor generates bounded traffic and controls faults"}},
+    "InstanceRole": {"Type": "AWS::IAM::Role", "Properties": {"AssumeRolePolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Principal": {"Service": ["ec2.amazonaws.com"]}, "Action": ["sts:AssumeRole"]}]}, "ManagedPolicyArns": [{"Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"}], "Policies": [{"PolicyName": "ReadLabDeployment", "PolicyDocument": {"Version": "2012-10-17", "Statement": [{"Effect": "Allow", "Action": "s3:GetObject", "Resource": {"Fn::Sub": "${DeploymentBucket.Arn}/releases/*"}}, {"Effect": "Allow", "Action": "ssm:GetParameter", "Resource": {"Fn::Sub": "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/incidentlab/${AWS::StackName}/*"}}]}}], "Tags": [{"Key": "Project", "Value": {"Ref": "ProjectTag"}}]}},
+    "InstanceProfile": {"Type": "AWS::IAM::InstanceProfile", "Properties": {"Roles": [{"Ref": "InstanceRole"}]}},
+    "Monitor": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {"Ref": "LinuxAmi"}, "InstanceType": {"Ref": "MonitorInstanceType"}, "SubnetId": {"Ref": "SubnetId"},
+        "SecurityGroupIds": [{"Ref": "MonitorSecurityGroup"}], "IamInstanceProfile": {"Ref": "InstanceProfile"},
+        "MetadataOptions": {"HttpTokens": "required", "HttpEndpoint": "enabled", "HttpPutResponseHopLimit": 1},
+        "CreditSpecification": {"CPUCredits": "standard"},
+        "BlockDeviceMappings": [{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 50, "VolumeType": "gp3", "Encrypted": true, "DeleteOnTermination": true}}],
+        "Tags": [{"Key": "Name", "Value": {"Fn::Sub": "${ProjectTag}-monitor"}}, {"Key": "Project", "Value": {"Ref": "ProjectTag"}}],
+        "UserData": {"Fn::Base64": {"Fn::Join": ["\n", ["#!/bin/bash", "set -euo pipefail", "dnf install -y docker git jq", "systemctl enable --now docker", "sysctl -w vm.max_map_count=262144", "printf 'vm.max_map_count=262144\\n' > /etc/sysctl.d/90-incidentlab.conf", "mkdir -p /opt/incidentlab"]]}}
+      }
+    },
+    "Target": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "ImageId": {"Ref": "LinuxAmi"}, "InstanceType": {"Ref": "TargetInstanceType"}, "SubnetId": {"Ref": "SubnetId"},
+        "SecurityGroupIds": [{"Ref": "TargetSecurityGroup"}], "IamInstanceProfile": {"Ref": "InstanceProfile"},
+        "MetadataOptions": {"HttpTokens": "required", "HttpEndpoint": "enabled", "HttpPutResponseHopLimit": 1},
+        "CreditSpecification": {"CPUCredits": "standard"},
+        "BlockDeviceMappings": [{"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 20, "VolumeType": "gp3", "Encrypted": true, "DeleteOnTermination": true}}],
+        "Tags": [{"Key": "Name", "Value": {"Fn::Sub": "${ProjectTag}-target"}}, {"Key": "Project", "Value": {"Ref": "ProjectTag"}}],
+        "UserData": {"Fn::Base64": {"Fn::Join": ["\n", ["#!/bin/bash", "set -euo pipefail", "dnf install -y docker git jq", "systemctl enable --now docker", "mkdir -p /opt/incidentlab"]]}}
+      }
+    }
+  },
+  "Outputs": {
+    "DeploymentBucket": {"Value": {"Ref": "DeploymentBucket"}},
+    "MonitorInstanceId": {"Value": {"Ref": "Monitor"}},
+    "TargetInstanceId": {"Value": {"Ref": "Target"}},
+    "MonitorPrivateIp": {"Value": {"Fn::GetAtt": ["Monitor", "PrivateIp"]}},
+    "TargetPrivateIp": {"Value": {"Fn::GetAtt": ["Target", "PrivateIp"]}},
+    "Access": {"Value": "Use SSM remote-host port forwarding to the Monitor private IP, TCP 8010. No application is deployed by this stack."}
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Optional IncidentLab HTTPS edge: private EC2 origin, shared-login gateway, WAF CAPTCHA. Deploy in us-east-1; application remains in Milan.",
+  "Parameters": {
+    "MonitorArn": {"Type": "String", "AllowedPattern": "arn:aws:ec2:[a-z0-9-]+:[0-9]{12}:instance/i-[a-f0-9]+"},
+    "MonitorPrivateDns": {"Type": "String", "AllowedPattern": "[a-zA-Z0-9.-]+"},
+    "ProjectName": {"Type": "String", "AllowedPattern": "[a-z][a-z0-9-]{2,30}"},
+    "OriginKey": {"Type": "String", "NoEcho": true, "AllowedPattern": "[a-f0-9]{64}"},
+    "PublicEnabled": {"Type": "String", "AllowedValues": ["true", "false"], "Default": "false"}
+  },
+  "Conditions": {"Enabled": {"Fn::Equals": [{"Ref": "PublicEnabled"}, "true"]}},
+  "Resources": {
+    "PrivateOrigin": {
+      "Type": "AWS::CloudFront::VpcOrigin",
+      "Properties": {"VpcOriginEndpointConfig": {
+        "Name": {"Fn::Sub": "${ProjectName}-gateway"}, "Arn": {"Ref": "MonitorArn"},
+        "HTTPPort": 8020, "HTTPSPort": 443, "OriginProtocolPolicy": "http-only", "OriginSSLProtocols": ["TLSv1.2"]
+      }}
+    },
+    "Firewall": {
+      "Type": "AWS::WAFv2::WebACL",
+      "Properties": {
+        "Name": {"Fn::Sub": "${ProjectName}-public"}, "Scope": "CLOUDFRONT", "DefaultAction": {"Allow": {}},
+        "CaptchaConfig": {"ImmunityTimeProperty": {"ImmunityTime": 300}},
+        "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "incidentlab-public"},
+        "Rules": [
+          {"Name": "RejectForgedCaptchaProof", "Priority": 0, "Action": {"Block": {}},
+            "Statement": {"ByteMatchStatement": {"FieldToMatch": {"Headers": {"MatchPattern": {"All": {}}, "MatchScope": "KEY", "OversizeHandling": "MATCH"}}, "PositionalConstraint": "STARTS_WITH", "SearchString": "x-amzn-waf-", "TextTransformations": [{"Priority": 0, "Type": "LOWERCASE"}]}},
+            "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "reject-forged-proof"}},
+          {"Name": "LoginAttemptLimit", "Priority": 1, "Action": {"Block": {}},
+            "Statement": {"RateBasedStatement": {"Limit": 30, "EvaluationWindowSec": 300, "AggregateKeyType": "IP", "ScopeDownStatement": {"ByteMatchStatement": {"FieldToMatch": {"UriPath": {}}, "PositionalConstraint": "EXACTLY", "SearchString": "/login", "TextTransformations": [{"Priority": 0, "Type": "URL_DECODE"}, {"Priority": 1, "Type": "LOWERCASE"}]}}}},
+            "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "limit-login"}},
+          {"Name": "RequestLimit", "Priority": 2, "Action": {"Block": {}},
+            "Statement": {"RateBasedStatement": {"Limit": 3000, "EvaluationWindowSec": 300, "AggregateKeyType": "IP"}},
+            "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "limit-requests"}},
+          {"Name": "ManagedCommonProtections", "Priority": 3, "OverrideAction": {"None": {}},
+            "Statement": {"ManagedRuleGroupStatement": {"VendorName": "AWS", "Name": "AWSManagedRulesCommonRuleSet"}},
+            "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "common-protections"}},
+          {"Name": "CaptchaForLogin", "Priority": 4,
+            "Action": {"Captcha": {"CustomRequestHandling": {"InsertHeaders": [{"Name": "captcha-verified", "Value": "true"}]}}},
+            "Statement": {"ByteMatchStatement": {"FieldToMatch": {"UriPath": {}}, "PositionalConstraint": "EXACTLY", "SearchString": "/login", "TextTransformations": [{"Priority": 0, "Type": "URL_DECODE"}, {"Priority": 1, "Type": "LOWERCASE"}]}},
+            "VisibilityConfig": {"CloudWatchMetricsEnabled": true, "SampledRequestsEnabled": false, "MetricName": "login-captcha"}}
+        ]
+      }
+    },
+    "Distribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {"DistributionConfig": {
+        "Comment": {"Fn::Sub": "${ProjectName}: authenticated laboratory only"}, "Enabled": {"Fn::If": ["Enabled", true, false]},
+        "PriceClass": "PriceClass_100", "HttpVersion": "http2and3", "IPV6Enabled": true,
+        "Origins": [{"Id": "gateway", "DomainName": {"Ref": "MonitorPrivateDns"},
+          "OriginCustomHeaders": [{"HeaderName": "X-IncidentLab-Origin", "HeaderValue": {"Ref": "OriginKey"}}],
+          "VpcOriginConfig": {"VpcOriginId": {"Fn::GetAtt": ["PrivateOrigin", "Id"]}, "OriginReadTimeout": 35, "OriginKeepaliveTimeout": 5}}],
+        "DefaultCacheBehavior": {
+          "TargetOriginId": "gateway", "ViewerProtocolPolicy": "https-only", "AllowedMethods": ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"],
+          "CachedMethods": ["GET", "HEAD"], "Compress": true,
+          "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad", "OriginRequestPolicyId": "216adef6-5c7f-47e4-b989-5492eafa07d3"
+        },
+        "ViewerCertificate": {"CloudFrontDefaultCertificate": true},
+        "WebACLId": {"Fn::GetAtt": ["Firewall", "Arn"]},
+        "CustomErrorResponses": [{"ErrorCode": 403, "ErrorCachingMinTTL": 0}, {"ErrorCode": 404, "ErrorCachingMinTTL": 0}, {"ErrorCode": 500, "ErrorCachingMinTTL": 0}, {"ErrorCode": 502, "ErrorCachingMinTTL": 0}, {"ErrorCode": 503, "ErrorCachingMinTTL": 0}, {"ErrorCode": 504, "ErrorCachingMinTTL": 0}]
+      }}
+    }
+  },
+  "Outputs": {
+    "PublicHost": {"Value": {"Fn::GetAtt": ["Distribution", "DomainName"]}},
+    "PublicUrl": {"Value": {"Fn::Sub": "https://${Distribution.DomainName}"}},
+    "DistributionId": {"Value": {"Ref": "Distribution"}},
+    "VpcOriginId": {"Value": {"Fn::GetAtt": ["PrivateOrigin", "Id"]}},
+    "WebAclArn": {"Value": {"Fn::GetAtt": ["Firewall", "Arn"]}}
+  }
+}

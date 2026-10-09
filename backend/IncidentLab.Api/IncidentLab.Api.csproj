@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../IncidentLab.Core/IncidentLab.Core.csproj" /></ItemGroup>
+  <ItemGroup><PackageReference Include="AWSSDK.BedrockRuntime" Version="4.0.101.9" /></ItemGroup>
+</Project>

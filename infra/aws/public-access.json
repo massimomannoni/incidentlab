@@ -1,0 +1,6 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Permit only the AWS-managed CloudFront VPC origin security group to reach the IncidentLab gateway; never exposes the monitor, target or databases.",
+  "Parameters": {"MonitorGroup": {"Type": "AWS::EC2::SecurityGroup::Id"}, "CloudFrontGroup": {"Type": "AWS::EC2::SecurityGroup::Id"}},
+  "Resources": {"GatewayIngress": {"Type": "AWS::EC2::SecurityGroupIngress", "Properties": {"GroupId": {"Ref": "MonitorGroup"}, "SourceSecurityGroupId": {"Ref": "CloudFrontGroup"}, "IpProtocol": "tcp", "FromPort": 8020, "ToPort": 8020, "Description": "IncidentLab authenticated gateway from private CloudFront origin only"}}}
+}

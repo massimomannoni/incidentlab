@@ -1,0 +1,54 @@
+name: Laboratory checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: {dotnet-version: '8.0.x'}
+      - run: dotnet restore backend/IncidentLab.Tests/IncidentLab.Tests.csproj --locked-mode
+      - run: dotnet test backend/IncidentLab.Tests/IncidentLab.Tests.csproj -c Release --no-restore --nologo
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
+      - run: npm ci
+      - run: npm run build
+  target:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: {dotnet-version: '8.0.x'}
+      - run: dotnet restore target/Target.csproj --locked-mode
+      - run: dotnet build target/Target.csproj --configuration Release --no-restore --nologo
+  infrastructure:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: ci-placeholder-not-a-secret
+      LAB_INGEST_KEY: ci-placeholder-not-a-secret
+      LAB_CONTROL_KEY: ci-placeholder-not-a-secret
+      TARGET_URL: http://10.0.0.20:8080
+      MONITOR_URL: http://10.0.0.10:8010
+      TARGET_BIND_ADDRESS: 10.0.0.20
+      MONITOR_BIND_ADDRESS: 10.0.0.10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm, cache-dependency-path: tools/package-lock.json}
+      - run: npm --prefix tools ci
+      - run: npm --prefix tools test
+      - run: bash -n scripts/lab.sh infra/aws/install-node.sh infra/aws/verify-node.sh
+      - run: docker compose -f compose.monitor.yml config --quiet
+      - run: docker compose -f compose.target.yml config --quiet
+      - run: docker compose -f compose.monitor.yml build
+      - run: docker compose -f compose.target.yml build
+      - run: docker build -f backend/Gateway.Dockerfile .

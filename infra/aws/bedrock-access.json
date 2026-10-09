@@ -1,0 +1,41 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Optional IncidentLab Bedrock access. Only Monitor instance credentials may invoke Nova Lite through the Milan EU profile. No inference or provisioned throughput is created.",
+  "Parameters": {
+    "InstanceRoleName": {"Type": "String", "AllowedPattern": "[A-Za-z0-9+=,.@_-]{1,64}"},
+    "MonitorInstanceId": {"Type": "String", "AllowedPattern": "i-[a-f0-9]{8,17}"}
+  },
+  "Resources": {
+    "NovaLiteAccess": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": {"Fn::Sub": "${AWS::StackName}-nova-lite"},
+        "Roles": [{"Ref": "InstanceRoleName"}],
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow", "Action": "bedrock:InvokeModel",
+              "Resource": {"Fn::Sub": "arn:${AWS::Partition}:bedrock:eu-south-1:${AWS::AccountId}:inference-profile/eu.amazon.nova-lite-v1:0"},
+              "Condition": {"ArnEquals": {"ec2:SourceInstanceARN": {"Fn::Sub": "arn:${AWS::Partition}:ec2:eu-south-1:${AWS::AccountId}:instance/${MonitorInstanceId}"}}}
+            },
+            {
+              "Effect": "Allow", "Action": "bedrock:InvokeModel",
+              "Resource": [
+                "arn:aws:bedrock:eu-south-1::foundation-model/amazon.nova-lite-v1:0",
+                "arn:aws:bedrock:eu-central-1::foundation-model/amazon.nova-lite-v1:0",
+                "arn:aws:bedrock:eu-west-1::foundation-model/amazon.nova-lite-v1:0",
+                "arn:aws:bedrock:eu-west-3::foundation-model/amazon.nova-lite-v1:0",
+                "arn:aws:bedrock:eu-north-1::foundation-model/amazon.nova-lite-v1:0"
+              ],
+              "Condition": {
+                "ArnEquals": {"ec2:SourceInstanceARN": {"Fn::Sub": "arn:${AWS::Partition}:ec2:eu-south-1:${AWS::AccountId}:instance/${MonitorInstanceId}"}},
+                "StringEquals": {"bedrock:InferenceProfileArn": {"Fn::Sub": "arn:${AWS::Partition}:bedrock:eu-south-1:${AWS::AccountId}:inference-profile/eu.amazon.nova-lite-v1:0"}}
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

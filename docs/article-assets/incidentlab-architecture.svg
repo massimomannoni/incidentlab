@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#17302d" stroke-width="1"/></pattern>
+    <marker id="green" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#7af3b8" stroke-width="1.7"/></marker>
+    <marker id="amber" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#ffca78" stroke-width="1.7"/></marker>
+    <style>text{font-family:Arial,Helvetica,sans-serif;fill:#edf7f0}.mono{font-family:Menlo,Consolas,monospace}.muted{fill:#b4c9c1}.small{font-size:24px}.label{font-size:25px;font-weight:700}.body{font-size:25px}.title{font-size:33px;font-weight:700}.box{fill:#112723;stroke:#457c65;stroke-width:2}.ai{fill:#28251d;stroke:#a18449;stroke-width:2}</style>
+  </defs>
+  <rect width="1600" height="1040" fill="#091714"/><rect width="1600" height="1040" fill="url(#grid)"/>
+  <text x="60" y="69" class="mono label" style="fill:#7af3b8">INCIDENTLAB / SYSTEM MAP</text>
+  <text x="60" y="128" style="font-size:45px;font-weight:700">Rules detect. Agents investigate. Code controls delivery.</text>
+  <text x="60" y="199" class="mono label" style="fill:#7af3b8">01 / CONTINUOUS DETECTION — NO LLM CALLS</text>
+  <rect x="60" y="228" width="320" height="185" rx="16" class="box"/>
+  <text x="84" y="270" class="title">Scenario tester</text><text x="84" y="308" class="body">React / TypeScript GUI</text><text x="84" y="342" class="body">C# scenario runner</text><text x="84" y="384" class="small muted">Real HTTP requests</text>
+  <path d="M386 320H415" fill="none" stroke="#7af3b8" stroke-width="3" marker-end="url(#green)"/>
+  <rect x="430" y="228" width="320" height="185" rx="16" class="box"/>
+  <text x="454" y="270" class="title">Target API</text><text x="454" y="308" class="body">ASP.NET Core / .NET 8</text><text x="454" y="342" class="body">HTTP logs + CPU / RSS</text><text x="454" y="384" class="small muted">Bounded fault injection</text>
+  <path d="M756 320H785" fill="none" stroke="#7af3b8" stroke-width="3" marker-end="url(#green)"/>
+  <rect x="800" y="228" width="320" height="185" rx="16" class="box"/>
+  <text x="824" y="270" class="title">Telemetry pipeline</text><text x="824" y="308" class="body">ASP.NET → SQL outbox</text><text x="824" y="342" class="body">→ OpenSearch</text><text x="824" y="384" class="small muted">Stable event IDs</text>
+  <path d="M1126 320H1155" fill="none" stroke="#7af3b8" stroke-width="3" marker-end="url(#green)"/>
+  <rect x="1170" y="228" width="370" height="185" rx="16" class="box"/>
+  <text x="1194" y="270" class="title">Rule-based analyzer</text><text x="1194" y="308" class="body">C# / every 2 seconds</text><text x="1194" y="342" class="body">Findings → incident state</text><text x="1194" y="384" class="small muted">Baseline notices, even AI-off</text>
+  <path d="M1355 414V459H190V565" fill="none" stroke="#ffca78" stroke-width="3" marker-end="url(#amber)"/>
+  <rect x="499" y="441" width="596" height="37" fill="#091714"/>
+  <text x="516" y="468" class="mono small" style="fill:#ffca78">ONLY AN INCIDENT CAN REACH AI ADMISSION</text>
+  <text x="430" y="540" class="mono label" style="fill:#ffca78;font-size:23px">02 / BOUNDED INVESTIGATION — EXPLICIT MODEL INVOCATIONS</text>
+  <rect x="60" y="579" width="275" height="214" rx="16" class="ai"/>
+  <text x="82" y="622" class="title">Admission gate</text><text x="82" y="661" class="body">Manual or opt-in auto</text><text x="82" y="696" class="body">Quota + deduplication</text><text x="82" y="755" class="small muted">Evidence snapshot</text>
+  <path d="M341 688H364" fill="none" stroke="#ffca78" stroke-width="3" marker-end="url(#amber)"/>
+  <rect x="380" y="579" width="385" height="214" rx="16" class="ai"/>
+  <text x="402" y="622" class="title">Codex worker / Mac</text><text x="402" y="661" class="body">Investigator → Manager</text><text x="402" y="696" class="body">→ optional Judge</text><text x="402" y="730" class="small muted">Remote models, tools disabled</text><text x="402" y="766" class="small muted">Structured, validated reports</text>
+  <path d="M771 688H794" fill="none" stroke="#ffca78" stroke-width="3" marker-end="url(#amber)"/>
+  <rect x="810" y="579" width="295" height="214" rx="16" class="ai"/>
+  <text x="832" y="622" class="title">Delivery policy</text><text x="832" y="661" class="body">Validate evidence IDs</text><text x="832" y="696" class="body">Enforce human review</text><text x="832" y="755" class="small muted">No auto-remediation</text>
+  <path d="M1111 688H1134" fill="none" stroke="#ffca78" stroke-width="3" marker-end="url(#amber)"/>
+  <rect x="1150" y="579" width="390" height="214" rx="16" class="ai"/>
+  <text x="1172" y="622" class="title">Admin console + inbox</text><text x="1172" y="661" class="body">Decision + delivery outcome</text><text x="1172" y="696" class="body">Reports + recorded stages</text><text x="1172" y="755" class="small muted">Per-agent / incident token ledger</text>
+  <rect x="60" y="835" width="1480" height="65" rx="12" fill="#10241f" stroke="#386e56"/>
+  <text x="85" y="876" class="body">SQL persists state, jobs, settings, reports and usage. No admitted incident means no model call.</text>
+  <text x="60" y="949" class="small muted">Deployment design shown: PostgreSQL + OpenSearch. Verified local experiments used explicit SQLite mode.</text>
+  <text x="60" y="990" class="small muted">Notifications: internal lab inbox only. AWS deployment and external channels still require implementation / validation.</text>
+</svg>

@@ -1,0 +1,25 @@
+name: incidentlab-target
+services:
+  target:
+    build:
+      context: .
+      dockerfile: target/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${TARGET_BIND_ADDRESS:-127.0.0.1}:8080:8080"
+    environment:
+      MONITOR_URL: ${MONITOR_URL:?Set MONITOR_URL to the private monitor endpoint}
+      LAB_INGEST_KEY: ${LAB_INGEST_KEY:?Set LAB_INGEST_KEY}
+      LAB_CONTROL_KEY: ${LAB_CONTROL_KEY:?Set LAB_CONTROL_KEY}
+      INSTANCE_ID: target-ec2
+    mem_limit: 512m
+    # The 128 MiB fault uses a shared memory mapping on Linux. Docker's
+    # default 64 MiB /dev/shm can crash the process when its pages are touched.
+    # This is capacity, not preallocated RAM; the 512 MiB cgroup cap still applies.
+    shm_size: 256m
+    cpus: 1.0
+    pids_limit: 128
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}

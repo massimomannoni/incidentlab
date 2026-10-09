@@ -1,0 +1,27 @@
+name: incidentlab-public
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: backend/Gateway.Dockerfile
+    restart: unless-stopped
+    env_file: .env.public
+    environment:
+      PUBLIC_MONITOR_URL: http://monitor:8010
+    ports:
+      - "${MONITOR_BIND_ADDRESS:?Bind to the Monitor private address}:8020:8020"
+    networks: [monitor-private]
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 128
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+networks:
+  monitor-private:
+    external: true
+    name: incidentlab-monitor_default

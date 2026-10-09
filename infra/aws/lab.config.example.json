@@ -1,0 +1,13 @@
+{
+  "account_id": "REPLACE_WITH_12_DIGIT_ACCOUNT_ID",
+  "region": "eu-south-1",
+  "stack_name": "incidentlab-poc",
+  "vpc_id": "vpc-REPLACE",
+  "subnet_id": "subnet-REPLACE",
+  "compose_version": "v2.39.4",
+  "compose_sha256": "7af95166a730b87e172d4fc9aefea8725d3c6c7327d59149267b452114ddb7d4",
+  "buildx_version": "v0.28.0",
+  "buildx_sha256": "696bc104bac3bb708eff1af3f8bbc09fda0fd88f5757c1f9b404a35117889224",
+  "private_zone_id": "",
+  "dns_name": ""
+}
